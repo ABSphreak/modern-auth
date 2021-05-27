@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import { fastify } from 'fastify';
 import fastifyStatic from 'fastify-static';
 import { connectDb } from './db.js';
+import { registerUser } from './accounts/register.js';
+import { authorizeUser } from './accounts/authorize.js';
 
 // To make __dirname available
 const __filename = fileURLToPath(import.meta.url);
@@ -15,9 +17,35 @@ const app = fastify();
 
 async function startApp() {
 	try {
+		// Serve static index.html
 		app.register(fastifyStatic, {
 			root: path.join(__dirname, 'public'),
 		});
+
+		app.post('/api/register', async (req, res) => {
+			try {
+				const userId = await registerUser(req.body.email, req.body.password);
+				res.send({
+					data: {
+						userId,
+					},
+				});
+			} catch (e) {
+				console.error(e);
+			}
+		});
+
+		app.post('/api/authorize', async (req, res) => {
+			try {
+				await authorizeUser(req.body.email, req.body.password);
+				res.send({
+					data: 'hello',
+				});
+			} catch (e) {
+				console.error(e);
+			}
+		});
+
 		// app.get('/', {}, (req, res) => {
 		// 	res.send({
 		// 		data: 'Hello world!',
