@@ -42,7 +42,7 @@
 				const loginForm = document.getElementById('login-form');
 
 				// Register form logic
-				registerForm.addEventListener('submit', async e => {
+				registerForm.addEventListener('submit', async (e) => {
 					try {
 						e.preventDefault();
 						const values = Object.values(registerForm).reduce((obj, field) => {
@@ -63,15 +63,24 @@
 				});
 
 				// Login form logic
-				loginForm.addEventListener('submit', e => {
-					e.preventDefault();
-					const values = Object.values(loginForm).reduce((obj, field) => {
-						if (field.name) {
-							obj[field.name] = field.value;
-						}
-						return obj;
-					}, {});
-					console.log(values);
+				loginForm.addEventListener('submit', async (e) => {
+					try {
+						e.preventDefault();
+						const values = Object.values(loginForm).reduce((obj, field) => {
+							if (field.name) {
+								obj[field.name] = field.value;
+							}
+							return obj;
+						}, {});
+						const res = await fetch('/api/authorize', {
+							method: 'POST',
+							body: JSON.stringify(values),
+							headers: { 'Content-type': 'application/json; charset=UTF-8' },
+						});
+						console.log(values);
+					} catch (e) {
+						console.error(e);
+					}
 				});
 			})();
 		</script>
