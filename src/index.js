@@ -8,6 +8,8 @@ import { connectDb } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { logUserIn } from './accounts/logUserIn.js';
+import { getUserFromCookies } from './accounts/user.js';
+import { logUserOut } from './accounts/logUserOut.js';
 
 // To make __dirname available
 const __filename = fileURLToPath(import.meta.url);
@@ -31,13 +33,24 @@ async function startApp() {
 		app.post('/api/register', async (req, res) => {
 			try {
 				const userId = await registerUser(req.body.email, req.body.password);
-				res.send({
-					data: {
-						userId,
-					},
-				});
+				if (userId) {
+					await logUserIn(userId, req, res);
+					res.send({
+						data: {
+							status: 'SUCCESS',
+							userId,
+						},
+					});
+				}
 			} catch (e) {
 				console.error(e);
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(500);
 			}
 		});
 
@@ -47,7 +60,10 @@ async function startApp() {
 				if (isAuthorized) {
 					await logUserIn(userId, req, res);
 					res.send({
-						data: 'User logged in',
+						data: {
+							status: 'SUCCESS',
+							userId,
+						},
 					});
 				}
 				res.send({
@@ -55,14 +71,52 @@ async function startApp() {
 				});
 			} catch (e) {
 				console.error(e);
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(500);
 			}
 		});
 
-		app.get('/test', {}, (req, res) => {
-			console.log(req.cookies);
-			res.send({
-				data: 'Hello world!',
-			});
+		app.get('/test', {}, async (req, res) => {
+			try {
+				const user = await getUserFromCookies(req, res);
+				if (user?._id) {
+					res.send({
+						data: {
+							status: 'SUCCESS',
+							user,
+						},
+					});
+				} else {
+					res.send({
+						data: 'User lookup failed',
+					});
+				}
+			} catch (e) {
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(500);
+				throw new Error(e);
+			}
+		});
+
+		app.post('/api/logout', async (req, res) => {
+			try {
+				await logUserOut(req, res);
+				res.send({
+					data: 'User logged out',
+				});
+			} catch (e) {
+				console.error(e);
+			}
 		});
 
 		app.listen(PORT);
