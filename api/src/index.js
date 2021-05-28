@@ -1,8 +1,5 @@
 import './env.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { fastify } from 'fastify';
-import fastifyStatic from 'fastify-static';
 import fastifyCookie from 'fastify-cookie';
 import fastifyCors from 'fastify-cors';
 import { connectDb } from './db.js';
@@ -14,10 +11,6 @@ import { getUserFromCookies } from './accounts/user.js';
 import { mailInit, sendEmail } from './mail/index.js';
 import { createVerifyEmailLink } from './accounts/verify.js';
 
-// To make __dirname available
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const PORT = process.env.PORT || 5000;
 
 const app = fastify();
@@ -25,11 +18,6 @@ const app = fastify();
 async function startApp() {
 	try {
 		await mailInit();
-
-		// Serve static index.html
-		app.register(fastifyStatic, {
-			root: path.join(__dirname, 'public'),
-		});
 
 		app.register(fastifyCookie, {
 			secret: process.env.COOKIE_SIGNATURE,
