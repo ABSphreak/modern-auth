@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>MODERN AUTH</title>
+	</head>
+	<body>
+		<div>
+			<h3>Reset Password</h3>
+			<form id="reset-form">
+				<input required type="password" name="password" />
+				<button>Reset</button>
+			</form>
+		</div>
+
+		<script>
+			const API_URL = 'https://api.nodeauth.dev';
+
+			function getValues(form) {
+				return Object.values(form).reduce((obj, field) => {
+					if (field.name) {
+						obj[field.name] = field.value;
+					}
+					return obj;
+				}, {});
+			}
+
+			// Grabbing forms
+			const resetForm = document.getElementById('reset-form');
+
+			// Reset Password form logic
+			resetForm.addEventListener('submit', reset);
+
+			async function reset(e) {
+				e.preventDefault();
+				try {
+					const [email, time, token] = window.location.pathname.split('/').slice(-3);
+					const formValues = getValues(resetForm);
+					const values = {
+						...formValues,
+						email: decodeURIComponent(email),
+						time,
+						token,
+					};
+					const res = await fetch(`${API_URL}/api/reset-password`, {
+						method: 'POST',
+						body: JSON.stringify(values),
+						credentials: 'include',
+						headers: { 'Content-type': 'application/json; charset=UTF-8' },
+					});
+				} catch (e) {
+					console.error(e);
+				}
+			}
+		</script>
+	</body>
+</html>
