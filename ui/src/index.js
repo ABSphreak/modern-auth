@@ -1,4 +1,5 @@
 import path from 'path';
+import https from 'https';
 import { fileURLToPath } from 'url';
 import { fastify } from 'fastify';
 import fastifyStatic from 'fastify-static';
@@ -19,7 +20,39 @@ async function startApp() {
 			root: path.join(__dirname, 'public'),
 		});
 
-		app.get('', {});
+		app.get('/verify/:email/:token', {}, async (req, res) => {
+			try {
+				const { email, token } = req.params;
+				const values = {
+					email,
+					token,
+				};
+				const httpsAgent = new https.Agent({
+					rejectUnauthorized: false,
+				});
+				const response = await fetch('https://api.nodeauth.dev/api/verify', {
+					method: 'POST',
+					body: JSON.stringify(values),
+					credentials: true,
+					agent: httpsAgent,
+					headers: { 'Content-type': 'application/json; charset=UTF-8' },
+				});
+				console.log(response.status);
+				if (response.status === 200) {
+					res.redirect('/');
+				}
+				res.code(401).send();
+			} catch (e) {
+				console.error(e);
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(500);
+			}
+		});
 
 		app.listen(PORT);
 		console.log('🚀 Server listening on PORT:', PORT);
