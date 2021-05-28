@@ -10,7 +10,7 @@ import { logUserOut } from './accounts/logUserOut.js';
 import { changePassword, getUserFromCookies } from './accounts/user.js';
 import { mailInit, sendEmail } from './mail/index.js';
 import { createVerifyEmailLink, validateVerifyEmail } from './accounts/verify.js';
-import { createResetLink } from './accounts/reset.js';
+import { createResetLink, validateResetEmail } from './accounts/reset.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -140,6 +140,32 @@ async function startApp() {
 				}
 				res.code(401).send({
 					data: 'SUCCESS',
+				});
+			} catch (e) {
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(401);
+			}
+		});
+
+		app.post('/api/reset', {}, async (req, res) => {
+			try {
+				const { email, password, token, time } = req.body;
+				const isValid = await validateResetEmail(token, email, time);
+				if (isValid) {
+					const { user } = await import('./models/user.js');
+					const foundUser = await user.findOne({
+						'email.address': email,
+					});
+					await changePassword(foundUser._id, password);
+					res.code(200).send('Password updated');
+				}
+				res.code(401).send({
+					data: 'Reset failed',
 				});
 			} catch (e) {
 				res

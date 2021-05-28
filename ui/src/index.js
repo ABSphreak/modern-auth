@@ -56,6 +56,8 @@ async function startApp() {
 
 		app.get('/reset/:email/:exp/:token', {}, (req, res) => res.sendFile('reset.html'));
 
+		app.get('/2fa', {}, (req, res) => res.sendFile('2fa.html'));
+
 		app.listen(PORT);
 		console.log('🚀 Server listening on PORT:', PORT);
 	} catch (e) {
