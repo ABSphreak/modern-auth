@@ -35,6 +35,21 @@
 
 		<div><button onclick="logout()">Logout</button></div>
 
+		<br />
+		<hr />
+		<br />
+
+		<div>
+			<h3>Change Password</h3>
+			<form id="change-form">
+				<label for="oldPassword">Old Password</label>
+				<input type="password" name="oldPassword" />
+				<label for="newPassword">New Password</label>
+				<input type="password" name="newPassword" />
+				<button>Change Password</button>
+			</form>
+		</div>
+
 		<script>
 			const API_URL = 'https://api.nodeauth.dev';
 			async function logout() {
@@ -53,6 +68,7 @@
 				// Grabbing forms
 				const registerForm = document.getElementById('registeration-form');
 				const loginForm = document.getElementById('login-form');
+				const changeForm = document.getElementById('change-form');
 
 				// Register form logic
 				registerForm.addEventListener('submit', async e => {
@@ -70,7 +86,6 @@
 							credentials: 'include',
 							headers: { 'Content-type': 'application/json; charset=UTF-8' },
 						});
-						console.log(values);
 					} catch (e) {
 						console.error(e);
 					}
@@ -92,7 +107,27 @@
 							credentials: 'include',
 							headers: { 'Content-type': 'application/json; charset=UTF-8' },
 						});
-						console.log(values);
+					} catch (e) {
+						console.error(e);
+					}
+				});
+
+				// Change Password form logic
+				changeForm.addEventListener('submit', async e => {
+					try {
+						e.preventDefault();
+						const values = Object.values(changeForm).reduce((obj, field) => {
+							if (field.name) {
+								obj[field.name] = field.value;
+							}
+							return obj;
+						}, {});
+						const res = await fetch(`${API_URL}/api/change-password`, {
+							method: 'POST',
+							body: JSON.stringify(values),
+							credentials: 'include',
+							headers: { 'Content-type': 'application/json; charset=UTF-8' },
+						});
 					} catch (e) {
 						console.error(e);
 					}
