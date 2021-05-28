@@ -12,6 +12,7 @@ import { logUserIn } from './accounts/logUserIn.js';
 import { logUserOut } from './accounts/logUserOut.js';
 import { getUserFromCookies } from './accounts/user.js';
 import { mailInit, sendEmail } from './mail/index.js';
+import { createVerifyEmailLink } from './accounts/verify.js';
 
 // To make __dirname available
 const __filename = fileURLToPath(import.meta.url);
@@ -24,10 +25,6 @@ const app = fastify();
 async function startApp() {
 	try {
 		await mailInit();
-		await sendEmail({
-			subject: 'New func',
-			html: '<h2>Hooooooooolllllaaaaaa</h2>',
-		});
 
 		// Serve static index.html
 		app.register(fastifyStatic, {
@@ -47,6 +44,12 @@ async function startApp() {
 			try {
 				const userId = await registerUser(req.body.email, req.body.password);
 				if (userId) {
+					const emailLink = await createVerifyEmailLink(req.body.email);
+					await sendEmail({
+						to: req.body.email,
+						subject: 'Verify your email',
+						html: `<a href="${emailLink}">Verify</a>`,
+					});
 					await logUserIn(userId, req, res);
 					res.send({
 						data: {

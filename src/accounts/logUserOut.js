@@ -17,6 +17,7 @@ export async function logUserOut(req, res) {
 			await session.deleteOne({ sessionToken });
 		}
 		// Remove cookies
+		console.log('LOGOUT_RAN');
 		res.clearCookie('accessToken').clearCookie('refreshToken');
 	} catch (e) {
 		console.error(e);
