@@ -2,12 +2,13 @@ import './env.js';
 import { fastify } from 'fastify';
 import fastifyCookie from 'fastify-cookie';
 import fastifyCors from 'fastify-cors';
+import { authenticator } from '@otplib/preset-default';
 import { connectDb } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { logUserIn } from './accounts/logUserIn.js';
 import { logUserOut } from './accounts/logUserOut.js';
-import { changePassword, getUserFromCookies } from './accounts/user.js';
+import { changePassword, getUserFromCookies, register2FA } from './accounts/user.js';
 import { mailInit, sendEmail } from './mail/index.js';
 import { createVerifyEmailLink, validateVerifyEmail } from './accounts/verify.js';
 import { createResetLink, validateResetEmail } from './accounts/reset.js';
@@ -27,6 +28,12 @@ async function startApp() {
 		app.register(fastifyCors, {
 			origin: [/\.nodeauth.dev/, `https://${process.env.ROOT_DOMAIN}`],
 			credentials: true,
+		});
+
+		app.get('/api/user', {}, async (req, res) => {
+			const user = await getUserFromCookies(req, res);
+			if (user) return res.send({ data: { user } });
+			res.send({});
 		});
 
 		app.post('/api/register', {}, async (req, res) => {
@@ -221,6 +228,21 @@ async function startApp() {
 						},
 					})
 					.code(401);
+			}
+		});
+
+		app.post('/api/2fa-register', {}, async (req, res) => {
+			try {
+				const { token, secret } = req.body;
+				const user = await getUserFromCookies(req, res);
+				const isValid = authenticator.verify({ token, secret });
+				if (user._id && isValid) {
+					await register2FA(user._id, secret);
+					res.send('SUCCESS');
+				}
+				res.code(401).send();
+			} catch (e) {
+				console.error(e);
 			}
 		});
 
