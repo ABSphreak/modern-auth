@@ -4,12 +4,14 @@ import { fileURLToPath } from 'url';
 import { fastify } from 'fastify';
 import fastifyStatic from 'fastify-static';
 import fastifyCookie from 'fastify-cookie';
+import fastifyCors from 'fastify-cors';
 import { connectDb } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { logUserIn } from './accounts/logUserIn.js';
-import { getUserFromCookies } from './accounts/user.js';
 import { logUserOut } from './accounts/logUserOut.js';
+import { getUserFromCookies } from './accounts/user.js';
+import { mailInit, sendEmail } from './mail/index.js';
 
 // To make __dirname available
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +23,12 @@ const app = fastify();
 
 async function startApp() {
 	try {
+		await mailInit();
+		await sendEmail({
+			subject: 'New func',
+			html: '<h2>Hooooooooolllllaaaaaa</h2>',
+		});
+
 		// Serve static index.html
 		app.register(fastifyStatic, {
 			root: path.join(__dirname, 'public'),
@@ -28,6 +36,11 @@ async function startApp() {
 
 		app.register(fastifyCookie, {
 			secret: process.env.COOKIE_SIGNATURE,
+		});
+
+		app.register(fastifyCors, {
+			origin: [/\.nodeauth.dev/, `https://${process.env.ROOT_DOMAIN}`],
+			credentials: true,
 		});
 
 		app.post('/api/register', async (req, res) => {
