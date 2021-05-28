@@ -50,6 +50,18 @@
 			</form>
 		</div>
 
+		<br />
+		<hr />
+		<br />
+
+		<div>
+			<h3>Forgot Password</h3>
+			<form id="forgot-form">
+				<input type="email" name="email" />
+				<button>Send Link</button>
+			</form>
+		</div>
+
 		<script>
 			const API_URL = 'https://api.nodeauth.dev';
 			async function logout() {
@@ -64,22 +76,27 @@
 				}
 			}
 
+			function getValues(form) {
+				return Object.values(form).reduce((obj, field) => {
+					if (field.name) {
+						obj[field.name] = field.value;
+					}
+					return obj;
+				}, {});
+			}
+
 			(() => {
 				// Grabbing forms
 				const registerForm = document.getElementById('registeration-form');
 				const loginForm = document.getElementById('login-form');
 				const changeForm = document.getElementById('change-form');
+				const forgotForm = document.getElementById('forgot-form');
 
 				// Register form logic
 				registerForm.addEventListener('submit', async e => {
 					try {
 						e.preventDefault();
-						const values = Object.values(registerForm).reduce((obj, field) => {
-							if (field.name) {
-								obj[field.name] = field.value;
-							}
-							return obj;
-						}, {});
+						const values = getValues(registerForm);
 						const res = await fetch(`${API_URL}/api/register`, {
 							method: 'POST',
 							body: JSON.stringify(values),
@@ -95,12 +112,7 @@
 				loginForm.addEventListener('submit', async e => {
 					try {
 						e.preventDefault();
-						const values = Object.values(loginForm).reduce((obj, field) => {
-							if (field.name) {
-								obj[field.name] = field.value;
-							}
-							return obj;
-						}, {});
+						const values = getValues(loginForm);
 						const res = await fetch(`${API_URL}/api/authorize`, {
 							method: 'POST',
 							body: JSON.stringify(values),
@@ -116,13 +128,24 @@
 				changeForm.addEventListener('submit', async e => {
 					try {
 						e.preventDefault();
-						const values = Object.values(changeForm).reduce((obj, field) => {
-							if (field.name) {
-								obj[field.name] = field.value;
-							}
-							return obj;
-						}, {});
+						const values = getValues(changeForm);
 						const res = await fetch(`${API_URL}/api/change-password`, {
+							method: 'POST',
+							body: JSON.stringify(values),
+							credentials: 'include',
+							headers: { 'Content-type': 'application/json; charset=UTF-8' },
+						});
+					} catch (e) {
+						console.error(e);
+					}
+				});
+
+				// Change Password form logic
+				forgotForm.addEventListener('submit', async e => {
+					try {
+						e.preventDefault();
+						const values = getValues(forgotForm);
+						const res = await fetch(`${API_URL}/api/forgot-password`, {
 							method: 'POST',
 							body: JSON.stringify(values),
 							credentials: 'include',
