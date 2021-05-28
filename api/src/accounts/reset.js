@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-
 const { ROOT_DOMAIN, JWT_SIGNATURE } = process.env;
 
 export function createResetToken(email, timeStamp) {
@@ -10,6 +9,13 @@ export function createResetToken(email, timeStamp) {
 	} catch (e) {
 		console.error(e);
 	}
+}
+
+function validateExpTimestamp(expTimeStamp) {
+	const expTime = 24 * 60 * 60 * 1000;
+	const dateDiff = Number(expTimeStamp) - Date.now();
+	const isValid = dateDiff > 0 && dateDiff < expTime;
+	return isValid;
 }
 
 export async function createResetEmailLink(email) {
@@ -45,5 +51,18 @@ export async function createResetLink(email) {
 		return '';
 	} catch (e) {
 		console.error(e);
+		return false;
+	}
+}
+
+export async function validateResetEmail(token, email, expTimeStamp) {
+	try {
+		const resetToken = createResetToken(email, expTimeStamp);
+		const isValid = resetToken === token;
+		const isTimeStampValid = validateExpTimestamp(expTimeStamp);
+		return isValid && isTimeStampValid;
+	} catch (e) {
+		console.error(e);
+		return false;
 	}
 }
