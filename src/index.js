@@ -46,9 +46,12 @@ async function startApp() {
 				const { isAuthorized, userId } = await authorizeUser(req.body.email, req.body.password);
 				if (isAuthorized) {
 					await logUserIn(userId, req, res);
+					res.send({
+						data: 'User logged in',
+					});
 				}
 				res.send({
-					data: 'hello',
+					data: 'Auth failed',
 				});
 			} catch (e) {
 				console.error(e);
