@@ -33,16 +33,26 @@
 		<hr />
 		<br />
 
-		<div><button>Logout</button></div>
+		<div><button onclick="logout()">Logout</button></div>
 
 		<script>
+			async function logout() {
+				try {
+					const res = await fetch('/api/logout', {
+						method: 'POST',
+					});
+				} catch (e) {
+					console.error(e);
+				}
+			}
+
 			(() => {
 				// Grabbing forms
 				const registerForm = document.getElementById('registeration-form');
 				const loginForm = document.getElementById('login-form');
 
 				// Register form logic
-				registerForm.addEventListener('submit', async (e) => {
+				registerForm.addEventListener('submit', async e => {
 					try {
 						e.preventDefault();
 						const values = Object.values(registerForm).reduce((obj, field) => {
@@ -63,7 +73,7 @@
 				});
 
 				// Login form logic
-				loginForm.addEventListener('submit', async (e) => {
+				loginForm.addEventListener('submit', async e => {
 					try {
 						e.preventDefault();
 						const values = Object.values(loginForm).reduce((obj, field) => {
