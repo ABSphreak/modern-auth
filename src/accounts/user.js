@@ -68,14 +68,14 @@ export async function refreshTokens(sessionToken, userId, res) {
 		res
 			.setCookie('refreshToken', refreshToken, {
 				path: '/',
-				domain: 'localhost',
+				domain: process.env.ROOT_DOMAIN,
 				httpOnly: true,
 				secure: true,
 				expires: refreshExpires,
 			})
 			.setCookie('accessToken', accessToken, {
 				path: '/',
-				domain: 'localhost',
+				domain: process.env.ROOT_DOMAIN,
 				httpOnly: true,
 				secure: true,
 			});
