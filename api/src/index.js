@@ -10,6 +10,7 @@ import { logUserOut } from './accounts/logUserOut.js';
 import { changePassword, getUserFromCookies } from './accounts/user.js';
 import { mailInit, sendEmail } from './mail/index.js';
 import { createVerifyEmailLink, validateVerifyEmail } from './accounts/verify.js';
+import { createResetLink } from './accounts/reset.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -163,6 +164,29 @@ async function startApp() {
 				} else {
 					res.code(401).send();
 				}
+			} catch (e) {
+				res
+					.send({
+						data: {
+							status: 'FAILED',
+						},
+					})
+					.code(401);
+			}
+		});
+
+		app.post('/api/forgot-password', {}, async (req, res) => {
+			try {
+				const { email } = req.body;
+				const link = await createResetLink(email);
+				if (link) {
+					await sendEmail({
+						to: email,
+						subject: 'Reset your password',
+						html: `<a href="${link}">Reset</a>`,
+					});
+				}
+				res.code(200).send();
 			} catch (e) {
 				res
 					.send({
