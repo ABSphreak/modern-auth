@@ -11,12 +11,19 @@ export async function authorizeUser(email, password) {
 		'email.address': email,
 	});
 
-	// Get user password
-	const savedPassword = userData.password;
+	if (userData) {
+		// Get user password
+		const savedPassword = userData.password;
 
-	// Compare password to the hash
-	const isAuthorized = await compare(password, savedPassword);
+		// Compare password to the hash
+		const isAuthorized = await compare(password, savedPassword);
 
-	// Return the boolean if authorized
-	return { isAuthorized, userId: userData._id };
+		// Return the boolean if authorized
+		return { isAuthorized, userId: userData._id, authenticatorSecret: userData.authenticator };
+	}
+	return {
+		isAuthorized: false,
+		userId: null,
+		authenticatorSecret: null,
+	};
 }

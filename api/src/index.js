@@ -68,8 +68,8 @@ async function startApp() {
 
 		app.post('/api/authorize', {}, async (req, res) => {
 			try {
-				const { isAuthorized, userId } = await authorizeUser(req.body.email, req.body.password);
-				if (isAuthorized) {
+				const { isAuthorized, userId, authenticatorSecret } = await authorizeUser(req.body.email, req.body.password);
+				if (isAuthorized && !authenticatorSecret) {
 					await logUserIn(userId, req, res);
 					res.send({
 						data: {
@@ -77,8 +77,15 @@ async function startApp() {
 							userId,
 						},
 					});
+				} else if (isAuthorized && authenticatorSecret) {
+					console.log(isAuthorized && authenticatorSecret);
+					res.send({
+						data: {
+							status: '2FA',
+						},
+					});
 				}
-				res.send({
+				res.code(401).send({
 					data: 'Auth failed',
 				});
 			} catch (e) {
@@ -239,6 +246,26 @@ async function startApp() {
 				if (user._id && isValid) {
 					await register2FA(user._id, secret);
 					res.send('SUCCESS');
+				}
+				res.code(401).send();
+			} catch (e) {
+				console.error(e);
+			}
+		});
+
+		app.post('/api/verify-2fa', {}, async (req, res) => {
+			try {
+				const { token, email, password } = req.body;
+				const { isAuthorized, userId, authenticatorSecret } = await authorizeUser(email, password);
+				const isValid = authenticator.verify({ token, secret: authenticatorSecret });
+				if (userId && isValid && isAuthorized) {
+					await logUserIn(userId, req, res);
+					res.send({
+						data: {
+							status: 'SUCCESS',
+							userId,
+						},
+					});
 				}
 				res.code(401).send();
 			} catch (e) {

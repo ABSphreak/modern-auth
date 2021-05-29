@@ -27,6 +27,15 @@
 				<input type="password" name="password" />
 				<button>Sign in</button>
 			</form>
+
+			<div id="2fa-div" style="display: none">
+				<h3>2FA Token</h3>
+				<form id="2fa-form">
+					<label for="token">Token</label>
+					<input name="token" type="text" />
+					<button type="submit">Submit</button>
+				</form>
+			</div>
 		</div>
 
 		<br />
@@ -119,6 +128,27 @@
 							credentials: 'include',
 							headers: { 'Content-type': 'application/json; charset=UTF-8' },
 						});
+						const loginData = await res.json();
+						if (loginData.data.status === '2FA') {
+							console.log('2FA');
+							const twoFAForm = document.getElementById('2fa-form');
+							const twoFADiv = document.getElementById('2fa-div');
+							twoFADiv.style.display = 'block';
+							twoFAForm.addEventListener('submit', async e => {
+								e.preventDefault();
+								try {
+									const tokenValues = getValues(twoFAForm);
+									const tokenRes = await fetch(`${API_URL}/api/verify-2fa`, {
+										method: 'POST',
+										body: JSON.stringify({ ...values, ...tokenValues }),
+										credentials: 'include',
+										headers: { 'Content-type': 'application/json; charset=UTF-8' },
+									});
+								} catch (e) {
+									console.error(e);
+								}
+							});
+						}
 					} catch (e) {
 						console.error(e);
 					}
