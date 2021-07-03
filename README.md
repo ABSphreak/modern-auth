@@ -7,4 +7,5 @@
 
 - JWT Authentication
 - Password reset flow
+- Email verification flow
 - 2FA flow
